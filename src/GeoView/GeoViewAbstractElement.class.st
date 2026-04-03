@@ -216,10 +216,10 @@ GeoViewAbstractElement >> configureLayer: aLayer [
 ]
 
 { #category : #'private - picking' }
-GeoViewAbstractElement >> createPickingResultAt: aGlobalPoint [
+GeoViewAbstractElement >> createPickingFromPointResultAt: aGlobalPoint [
 
 	| pickingResult absoluteCoordinates localPoint |
-	pickingResult := GeoViewPickingResult new
+	pickingResult := GeoViewPickingFromPointResult new
 		                 timestamp: DateAndTime now;
 		                 yourself.
 
@@ -232,6 +232,25 @@ GeoViewAbstractElement >> createPickingResultAt: aGlobalPoint [
 		localPoint: localPoint;
 		absoluteCoordinates: absoluteCoordinates;
 		cartesianCoordinates: (self mapProjection projLatLonToCart: absoluteCoordinates).
+	
+	^ pickingResult
+]
+
+{ #category : #'private - picking' }
+GeoViewAbstractElement >> createRectanglePickingResult: aGlobalRectangle [
+
+	| pickingResult originLocal cornerLocal |
+	pickingResult := SmockPickingFromRectangleResult new
+		                 timestamp: DateAndTime now;
+		                 yourself.
+
+	aGlobalRectangle ifNil:[ ^ pickingResult ].
+	originLocal := (self localPointFromGlobalPoint: aGlobalRectangle origin) ifNil:[ ^ pickingResult ].
+	cornerLocal := (self localPointFromGlobalPoint: aGlobalRectangle corner) ifNil:[ ^ pickingResult ].
+	
+	pickingResult 
+		globalRectangle: aGlobalRectangle copy;
+		localRectangle: (originLocal corner: cornerLocal).
 	
 	^ pickingResult
 ]
@@ -566,37 +585,84 @@ GeoViewAbstractElement >> objectIndexAccessor: aSymbol [
 
 { #category : #'API -- picking' }
 GeoViewAbstractElement >> pickAt: aGlobalPoint [
-	"Return all objects under a global point"
+	"Return all objects from picking a global point"
 
-	^ self pickAt: aGlobalPoint radius: 0
+	^ self pickAt: aGlobalPoint distance: 0
+]
+
+{ #category : #'API -- picking' }
+GeoViewAbstractElement >> pickAt: aGlobalPoint distance: aDistanceInPixels [
+	"Return all objects under a global point inside a radius in pixels"
+
+	| aCirclePickingResult |
+	aCirclePickingResult := self createPickingFromPointResultAt: aGlobalPoint.
+	aCirclePickingResult distanceInPixels: aDistanceInPixels.
+	
+	self preConfigurePickingResult: aCirclePickingResult.
+	self doPicking: aCirclePickingResult.
+	self postConfigurePickingResult: aCirclePickingResult.
+
+	^ aCirclePickingResult
 ]
 
 { #category : #'API -- picking' }
 GeoViewAbstractElement >> pickAt: aGlobalPoint radius: aRadiusInPixels [
 	"Return all objects under a global point inside a radius in pixels"
 
-	| pickingResult |
-	pickingResult := self createPickingResultAt: aGlobalPoint.
-	self preConfigurePickingResult: pickingResult radius: aRadiusInPixels.
-	self doPicking: pickingResult.
-	self postConfigurePickingResult: pickingResult radius: aRadiusInPixels.
+	self
+		deprecated: 'Use pickAt:distance:'
+		transformWith: '`@receiver pickAt: `@aGlobalPoint radius: `@aRadiusInPixels'
+			-> '`@receiver pickAt: `@aGlobalPoint distance: `@aRadiusInPixels'.
+	
+	^ self pickAt: aGlobalPoint distance: aRadiusInPixels
+]
 
-	^ pickingResult
+{ #category : #'API -- picking' }
+GeoViewAbstractElement >> pickInRectangle: aGlobalPointRectangle [
+	"Return all objects includes in a rectangle"
+
+	^ self pickInRectangle: aGlobalPointRectangle inclusive: true
+]
+
+{ #category : #'API -- picking' }
+GeoViewAbstractElement >> pickInRectangle: aGlobalPointRectangle inclusive: isInclusive [
+	"Return all objects includes and/or which intersects a rectangle"
+
+	| aRectanglePickingResult |
+	aRectanglePickingResult := self createRectanglePickingResult: aGlobalPointRectangle.
+	aRectanglePickingResult isInclusive: isInclusive.
+	
+	self preConfigurePickingResult: aRectanglePickingResult.
+	self doPicking: aRectanglePickingResult.
+	self postConfigurePickingResult: aRectanglePickingResult.
+
+	^ aRectanglePickingResult
+]
+
+{ #category : #'private - picking' }
+GeoViewAbstractElement >> postConfigurePickingResult: aPickingResult [
+
+	aPickingResult isPointPicking ifTrue:[
+		"When picked from a circle, order results by distance from the center"
+		aPickingResult applyOrder: [ :a :b | a distanceInPixels < b distanceInPixels ] ].
 ]
 
 { #category : #'private - picking' }
 GeoViewAbstractElement >> postConfigurePickingResult: aPickingResult radius: aRadius [
 
-	aPickingResult applyOrder: [ :a :b | a distanceInPixels < b distanceInPixels ].
+	self deprecated:'use postConfigurePickingResult: aPickingResult'
+]
+
+{ #category : #'private - picking' }
+GeoViewAbstractElement >> preConfigurePickingResult: aPickingResult [
+
+	"do nothing"
 ]
 
 { #category : #'private - picking' }
 GeoViewAbstractElement >> preConfigurePickingResult: aPickingResult radius: aRadiusInPixels [
-	"do nothing"
 
-	| radius |
-	radius := aRadiusInPixels ifNil: [ 0 ].
-	aPickingResult radiusInPixels: radius
+	self deprecated:'use preConfigurePickingResult: aPickingResult'
 ]
 
 { #category : #'private - events' }

@@ -23,7 +23,7 @@ GeoPositionProcessData >> processCreatedData: aKey incoming: aGeoPosition with: 
 	dCompositeShape addChild: dImage.
 
 	"create label"
-	dLabel := SmockDText key: #text.
+	dLabel := (SmockDText key: #text) isPickable: false.
 	dLabel fillColor: self textColor; smockFont: SmockFont defaultFont; text: aGeoPosition text; setTopCenter; coordinatesDeviceOffset: 0 @ -30.
 	dLabel effect: (SmockBackgroundEffect new fillColor: (Color white alpha: 0.66); padding: (SmockInsets all: 2)).
 	dCompositeShape addChild: dLabel.

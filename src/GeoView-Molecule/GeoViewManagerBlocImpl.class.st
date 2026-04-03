@@ -28,8 +28,8 @@ GeoViewManagerBlocImpl >> installEventHandlers: aBlElement [
 	aBlElement addEventHandlerOn: GeoViewScaleChangedEvent do: [ :e | self scaleHasChanged: e ]. 
 
 	"Selection events"
-	aBlElement addEventHandlerOn: GeoViewObjectSelectionChanged do: [ :e | self strategyRequestSetSelection: e objectIndexesList ].
-	aBlElement addEventHandlerOn: GeoViewObjectSelectionAdded do: [ :e | self strategyRequestAddSelection: e objectIndexesList ].
-	aBlElement addEventHandlerOn: GeoViewObjectSelectionRemoved do: [ :e | self strategyRequestRemoveSelection: e objectIndexesList ].
-	aBlElement addEventHandlerOn: GeoViewObjectSelectionCleared do: [ :e | self strategyRequestClearSelection ]
+	aBlElement addEventHandlerOn: SmockObjectSelectionChanged do: [ :e | self strategyRequestSetSelection: e objectIndexesList ].
+	aBlElement addEventHandlerOn: SmockObjectSelectionAdded do: [ :e | self strategyRequestAddSelection: e objectIndexesList ].
+	aBlElement addEventHandlerOn: SmockObjectSelectionRemoved do: [ :e | self strategyRequestRemoveSelection: e objectIndexesList ].
+	aBlElement addEventHandlerOn: SmockObjectSelectionCleared do: [ :e | self strategyRequestClearSelection ]
 ]

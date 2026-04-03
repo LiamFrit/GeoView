@@ -12,6 +12,8 @@ Class {
 { #category : #'mouse handlers' }
 GeoViewMeasuringRulerController >> clickEvent: anEvent [
 
+	anEvent consume.
+
 	self isMeasuring: false
 	
 	
@@ -21,6 +23,8 @@ GeoViewMeasuringRulerController >> clickEvent: anEvent [
 GeoViewMeasuringRulerController >> doubleClickEvent: anEvent [
 
 	| coordinates |
+
+	anEvent consume.
 
 	"remove previous measure"
 	measuringRuler ifNotNil: [
@@ -54,6 +58,8 @@ GeoViewMeasuringRulerController >> mouseMoveEvent: anEvent [
 
 	| coordinates |
 	self isMeasuring ifFalse:[ ^ self ].
+	
+	anEvent consume.
 	
 	coordinates := geoView absoluteCoordinatesFromGlobalPoint: anEvent position.
 	coordinates ifNil:[ ^ self ].
