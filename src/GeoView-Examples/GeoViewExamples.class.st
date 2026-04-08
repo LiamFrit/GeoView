@@ -349,7 +349,7 @@ GeoViewExamples class >> exampleCitiesMonoSelection [
 
 	| geoView processData instructionsText |
 	geoView := GeoViewUtils createGeoViewForGeoObjects.
-	geoView interactionsStrategy allowRectangleSelection: false.
+	geoView interactionsStrategy allowMultipleSelection: false.
 	
 	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
 		
@@ -373,7 +373,7 @@ GeoViewExamples class >> exampleCitiesMonoSelection [
 		        constraints horizontal fitContent.
 		        constraints vertical exact: 15.
 		        constraints padding: (BlInsets all: 10.0) ];
-	        id: #instructionsText; text: 'Click on a city to select it.' asRopedText;
+	        id: #instructionsText; text: 'Click on a city to select it, but you can select only one city.' asRopedText;
 	        yourself.
 	geoView addChild: instructionsText.
 
@@ -418,6 +418,88 @@ GeoViewExamples class >> exampleCitiesMultipleSelection [
 		        constraints vertical exact: 15.
 		        constraints padding: (BlInsets all: 10.0) ];
 	        id: #instructionsText; text: 'Click on a city to select it. Maintain Shift + Mouse Drag to draw a rectangle. Release the mouse to select cities inside the rectangle.' asRopedText;
+	        yourself.
+	geoView addChild: instructionsText.
+
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - interactions' }
+GeoViewExamples class >> exampleCitiesMultipleSelectionWithoutRectangle [
+	"This example show how to implement a mouse selection interaction and its visual appearence"
+
+	| geoView processData instructionsText |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
+	geoView interactionsStrategy interactionsList detect:[ :e | e class = GeoViewRectangleSelectionEventHandler ] ifFound: [ :e | geoView interactionsStrategy removeInteraction: e ].
+		
+	"Change the process data of GeoPosition to use a custom one which render the selection"
+	processData := GeoPositionWithSelectionExampleProcessData new.
+	geoView getLayers last setProcessData: processData forClass: GeoPosition.
+	
+	"add cities"
+	geoView addObjects: (self largest50Cities doWithIndex: [ :e :i | e key: i; image: (self iconNamed: #remote) ]).
+
+	"process selection events to select objects"
+	geoView addEventHandlerOn: SmockObjectSelectionChanged do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionAdded do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionRemoved do: [ :e | 
+		geoView clearSelectedObjectIndexes. 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionCleared do: [ :e | 
+		geoView clearSelectedObjectIndexes. 
+	].
+
+	"Create a text to display instructions"
+	instructionsText := BlTextElement new
+				background: Color white;
+				effect: (BlGaussianShadowEffect color: (Color gray alpha: 0.5) width: 10 offset: 0@0);
+	        constraintsDo: [ :constraints |
+		        constraints horizontal fitContent.
+		        constraints vertical exact: 15.
+		        constraints padding: (BlInsets all: 10.0) ];
+	        id: #instructionsText; text: 'Click on a city to select it. Maintain Shift + Mouse Drag to draw a rectangle. Release the mouse to select cities inside the rectangle.' asRopedText;
+	        yourself.
+	geoView addChild: instructionsText.
+
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - interactions' }
+GeoViewExamples class >> exampleCitiesNoSelection [
+	"This example show how to implement a mouse selection interaction but without rectangle"
+
+	| geoView processData instructionsText |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	geoView interactionsStrategy allowSelection: false.
+	
+	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
+		
+	"Change the process data of GeoPosition to use a custom one which render the selection"
+	processData := GeoPositionWithSelectionExampleProcessData new.
+	geoView getLayers last setProcessData: processData forClass: GeoPosition.
+	
+	"add cities"
+	geoView addObjects: (self largest50Cities doWithIndex: [ :e :i | e key: i; image: (self iconNamed: #remote) ]).
+
+	"process selection events to select objects"
+	geoView addEventHandlerOn: SmockObjectSelectionChanged do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+
+	"Create a text to display instructions"
+	instructionsText := BlTextElement new
+				background: Color white;
+				effect: (BlGaussianShadowEffect color: (Color gray alpha: 0.5) width: 10 offset: 0@0);
+	        constraintsDo: [ :constraints |
+		        constraints horizontal fitContent.
+		        constraints vertical exact: 15.
+		        constraints padding: (BlInsets all: 10.0) ];
+	        id: #instructionsText; text: 'Click on a city to select it, but you can select only one city.' asRopedText;
 	        yourself.
 	geoView addChild: instructionsText.
 

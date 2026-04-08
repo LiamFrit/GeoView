@@ -4,6 +4,8 @@ I am an abstract BlElement which contains GeoViewWidget behavior. Not possible t
 Class {
 	#name : #GeoViewAbstractElement,
 	#superclass : #BlElement,
+	#traits : 'TSmockInteractionsStrategyTarget',
+	#classTraits : 'TSmockInteractionsStrategyTarget classTrait',
 	#instVars : [
 		'geoCenter',
 		'scaleFactor',
@@ -584,13 +586,6 @@ GeoViewAbstractElement >> objectIndexAccessor: aSymbol [
 ]
 
 { #category : #'API -- picking' }
-GeoViewAbstractElement >> pickAt: aGlobalPoint [
-	"Return all objects from picking a global point"
-
-	^ self pickAt: aGlobalPoint distance: 0
-]
-
-{ #category : #'API -- picking' }
 GeoViewAbstractElement >> pickAt: aGlobalPoint distance: aDistanceInPixels [
 	"Return all objects under a global point inside a radius in pixels"
 
@@ -615,13 +610,6 @@ GeoViewAbstractElement >> pickAt: aGlobalPoint radius: aRadiusInPixels [
 			-> '`@receiver pickAt: `@aGlobalPoint distance: `@aRadiusInPixels'.
 	
 	^ self pickAt: aGlobalPoint distance: aRadiusInPixels
-]
-
-{ #category : #'API -- picking' }
-GeoViewAbstractElement >> pickInRectangle: aGlobalPointRectangle [
-	"Return all objects includes in a rectangle"
-
-	^ self pickInRectangle: aGlobalPointRectangle inclusive: true
 ]
 
 { #category : #'API -- picking' }

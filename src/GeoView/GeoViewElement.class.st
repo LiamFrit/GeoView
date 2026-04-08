@@ -6,7 +6,6 @@ Class {
 	#superclass : #GeoViewAbstractElement,
 	#instVars : [
 		'layerListElement',
-		'interactionsStrategy',
 		'footnotes',
 		'footnotesElement'
 	],
@@ -88,7 +87,7 @@ GeoViewElement >> initializeFootnotesElements [
 	self footnotesElement: element 
 ]
 
-{ #category : #initialization }
+{ #category : #'private - strategy' }
 GeoViewElement >> initializeInteractionsStrategy [
 	"Add behavior to process Bloc UI events interactions"
 
@@ -110,10 +109,10 @@ GeoViewElement >> initializeLayerListElement [
 	self inUIProcessDo: [ self addChildFirst: layerListElement ]
 ]
 
-{ #category : #'strategy management' }
-GeoViewElement >> interactionsStrategy [
-
-	^ interactionsStrategy
+{ #category : #'private - strategy' }
+GeoViewElement >> installInteractionsStrategy [
+	
+	self layerListElement addEventHandler: interactionsStrategy
 ]
 
 { #category : #accessing }
@@ -122,37 +121,18 @@ GeoViewElement >> layerListElement [
 	^ layerListElement 
 ]
 
-{ #category : #'strategy management' }
+{ #category : #'private - strategy' }
 GeoViewElement >> newInteractionsStrategy [
 
 	^ GeoViewInteractionsStrategy new
 ]
 
-{ #category : #'strategy management' }
-GeoViewElement >> removeInteractionsStrategy [
-
-	interactionsStrategy ifNil: [ ^ self ].
-
-	interactionsStrategy geoView: nil.
+{ #category : #'private - strategy' }
+GeoViewElement >> uninstallInteractionsStrategy [
 
 	(self layerListElement hasEventHandler: interactionsStrategy)
 		ifTrue: [
 		self layerListElement removeEventHandler: interactionsStrategy ].
-	
-	interactionsStrategy := nil
-]
-
-{ #category : #'strategy management' }
-GeoViewElement >> setInteractionsStrategy: aBlEventListener [
-
-	self removeInteractionsStrategy.
-
-	aBlEventListener ifNil: [ ^ self ].
-
-	interactionsStrategy := aBlEventListener.
-	interactionsStrategy geoView: self.
-	
-	self layerListElement addEventHandler: aBlEventListener
 ]
 
 { #category : #private }

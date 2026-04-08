@@ -8,8 +8,7 @@ Class {
 	#instVars : [
 		'allowMapMoving',
 		'allowMapScaling',
-		'isMapMoving',
-		'rectangleSelectionEventHandler'
+		'isMapMoving'
 	],
 	#category : #'GeoView-Events'
 }
@@ -38,21 +37,6 @@ GeoViewInteractionsStrategy >> allowMapScaling: anObject [
 	allowMapScaling := anObject
 ]
 
-{ #category : #'API -- configuration' }
-GeoViewInteractionsStrategy >> allowRectangleSelection: aBoolean [
-
-	| previous |
-	previous := allowRectangleSelection.
-	super allowRectangleSelection: aBoolean.
-	previous ~= aBoolean ifFalse:[ ^ self ].
-			
-	aBoolean ifFalse:[
-		self uninstallRectangleSelectionEventHandler.
-	] ifTrue:[
-		self allowSelection ifTrue:[ self installRectangleSelectionEventHandler ].
-	].
-]
-
 { #category : #'dnd handlers' }
 GeoViewInteractionsStrategy >> dragEndEvent: anEvent [
 
@@ -68,17 +52,7 @@ GeoViewInteractionsStrategy >> geoView [
 { #category : #accessing }
 GeoViewInteractionsStrategy >> geoView: aGeoViewOrNil [
 
-	self target ifNotNil:[
-		self uninstallRectangleSelectionEventHandler.	
-	].
-
-	self target: aGeoViewOrNil.
-	
-	self target ifNotNil: [
-		self allowRectangleSelection ifTrue:[
-			self installRectangleSelectionEventHandler
-		].
-	] 
+	self target: aGeoViewOrNil
 ]
 
 { #category : #initialization }
@@ -86,22 +60,14 @@ GeoViewInteractionsStrategy >> initialize [
 
 	super initialize.
 	
-	self initializeRectangleSelectionEventHandler.
+	"default behavior"
+	self installRectangleSelectionInteraction 
 ]
 
 { #category : #private }
-GeoViewInteractionsStrategy >> initializeRectangleSelectionEventHandler [
-
-	rectangleSelectionEventHandler := GeoViewRectangleSelectionEventHandler new
-]
-
-{ #category : #private }
-GeoViewInteractionsStrategy >> installRectangleSelectionEventHandler [
+GeoViewInteractionsStrategy >> installRectangleSelectionInteraction [
 		
-	self geoView ifNil:[ ^ self ].
-	(self geoView hasEventHandler: rectangleSelectionEventHandler) ifTrue:[ ^ self ]. 
-	
-	self geoView addEventHandler: rectangleSelectionEventHandler
+	self addInteraction: GeoViewRectangleSelectionEventHandler new
 ]
 
 { #category : #accessing }
@@ -216,22 +182,6 @@ GeoViewInteractionsStrategy >> primaryClickEvent: anEvent [
 	self selectOnClick: anEvent 
 ]
 
-{ #category : #'events - accessing' }
-GeoViewInteractionsStrategy >> rectangleSelectionEventHandler [
-
-	^ rectangleSelectionEventHandler
-]
-
-{ #category : #'events - accessing' }
-GeoViewInteractionsStrategy >> rectangleSelectionEventHandler: anEventHandler [
-
-	self uninstallRectangleSelectionEventHandler.
-
-	rectangleSelectionEventHandler := anEventHandler.
-	
-	self allowRectangleSelection ifTrue:[ self installRectangleSelectionEventHandler ].
-]
-
 { #category : #'mouse handlers' }
 GeoViewInteractionsStrategy >> secondaryClickEvent: anEvent [
 	
@@ -253,13 +203,4 @@ GeoViewInteractionsStrategy >> sendMouseCoordinatesChanged: anEvent [
 	event := GeoViewCursorCoordinatesChangedEvent new.
 	event absoluteCoordinates: coordinates.
 	self geoView dispatchEvent: event.
-]
-
-{ #category : #private }
-GeoViewInteractionsStrategy >> uninstallRectangleSelectionEventHandler [
-		
-	self geoView ifNil:[ ^ self ].
-	(self geoView hasEventHandler: rectangleSelectionEventHandler) ifFalse:[ ^ self ]. 
-	
-	self geoView removeEventHandler: rectangleSelectionEventHandler
 ]

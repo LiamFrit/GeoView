@@ -7,9 +7,10 @@ Class {
 	#superclass : #BlEventListener,
 	#instVars : [
 		'geoView',
-		'startPosition',
 		'rectangle',
-		'rectangleElement'
+		'rectangleElement',
+		'startPointLocal',
+		'startPointGlobal'
 	],
 	#category : #'GeoView-Events'
 }
@@ -40,7 +41,8 @@ GeoViewRectangleSelectionEventHandler >> dragEndEvent: anEvent [
 	
 	self pickRectangle: anEvent.
 	
-	startPosition := nil.
+	startPointGlobal := nil.
+	startPointLocal := nil.
 	rectangle := nil.
 ]
 
@@ -50,9 +52,9 @@ GeoViewRectangleSelectionEventHandler >> dragEvent: anEvent [
 	| origin corner |
 	anEvent consume.
 	
-	startPosition ifNil:[ ^ self ].
+	startPointLocal ifNil:[ ^ self ].
 	
-	origin := startPosition.
+	origin := startPointLocal.
 	corner := self geoView localPointFromGlobalPoint: (anEvent position).
 	rectangle := Rectangle point: origin point: corner.
 	
@@ -66,12 +68,13 @@ GeoViewRectangleSelectionEventHandler >> dragStartEvent: anEvent [
 
 	"Create a rectangle when the Shift key is down"
 	anEvent modifiers isShift ifFalse:[ ^ self ].
-	
 	anEvent consume.
 	
-	"Place rectangle at start position"
-	startPosition := self geoView localPointFromGlobalPoint: (anEvent position).
-	self rectangleElement extent: 1 asPoint; position: startPosition.
+	"Place rectangle at start position, store the start point to know the rectangle creation direction"
+	startPointGlobal := anEvent position.
+	startPointLocal := self geoView localPointFromGlobalPoint: startPointGlobal.
+	
+	self rectangleElement extent: 1 asPoint; position: startPointLocal.
 	
 	self geoView inUIProcessDo: [ self geoView addChild: self rectangleElement ]
 ]
@@ -130,6 +133,9 @@ GeoViewRectangleSelectionEventHandler >> pickRectangle: anEvent [
 	globalRectangle := (self geoView globalPointFromLocalPoint: rectangle origin) corner: (self geoView globalPointFromLocalPoint: rectangle corner).
 	
 	pickingResult := self geoView pickInRectangle: globalRectangle.
+	pickingResult localStartPoint: startPointLocal copy.
+	pickingResult globalStartPoint: startPointGlobal copy.
+	
 	self geoView interactionsStrategy processSelectionInPickingResult: pickingResult from: anEvent
 ]
 
