@@ -441,6 +441,13 @@ AbstractGeoViewGraphicModelLayer >> sendSortRequest [
 	self announcer announce: announcement
 ]
 
+{ #category : #'API -- symbology' }
+AbstractGeoViewGraphicModelLayer >> setSymbologyProvider: aSymbologyProvider [
+
+	self symbologyProvider: aSymbologyProvider.
+	self updateModel: SmockSymbologyChanges new
+]
+
 { #category : #'private - sort' }
 AbstractGeoViewGraphicModelLayer >> sortDatas [
 	"force sorted to remove and add datas - execute my only with a bloc command applier - return true / false if need to repaint"

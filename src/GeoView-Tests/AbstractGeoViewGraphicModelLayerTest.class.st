@@ -161,6 +161,19 @@ AbstractGeoViewGraphicModelLayerTest >> testReachMaximumDisplayedObjects [
 ]
 
 { #category : #tests }
+AbstractGeoViewGraphicModelLayerTest >> testSetSymbologyProvider [
+
+	| processSymbol |
+	self assert: layer symbologyProvider isNil.
+	
+	processSymbol := layer graphicModel getProcessDataForClass: SmockDSymbol.
+
+	layer setSymbologyProvider: SmockSymbologyProvider new.
+	
+	self deny: layer symbologyProvider isNil
+]
+
+{ #category : #tests }
 AbstractGeoViewGraphicModelLayerTest >> testSortDatas [
 	
 	layer sortDatas. "call from the manager"
