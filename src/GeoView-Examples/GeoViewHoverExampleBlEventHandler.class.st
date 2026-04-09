@@ -15,7 +15,7 @@ GeoViewHoverExampleBlEventHandler >> doAction: anEvent [
 	self geoView ifNil:[ ^ self ].
 	
 	globalPoint := anEvent position.
-	pickingResult := self geoView pickAt: globalPoint radius: 10. 
+	pickingResult := self geoView pickAt: globalPoint distance: 10. 
 	firstElement := pickingResult firstElement.
 
 	firstElement ifNil:[ 

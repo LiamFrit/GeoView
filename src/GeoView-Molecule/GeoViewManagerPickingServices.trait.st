@@ -7,10 +7,10 @@ Trait {
 
 { #category : #'services - picking' }
 GeoViewManagerPickingServices >> pickAt: aGlobalPoint [
-	"Return all objects under a global point"
+	"Return all objects under a point"
 ]
 
 { #category : #'services - picking' }
-GeoViewManagerPickingServices >> pickAt: aGlobalPoint radius: aRadiusInPixels [
-	"Return all objects under a global point inside a radius in pixels"
+GeoViewManagerPickingServices >> pickAt: aGlobalPoint distance: aDistanceInPixels [
+	"Return all objects under a point and a distance"
 ]

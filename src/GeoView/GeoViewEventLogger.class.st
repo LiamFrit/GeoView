@@ -11,15 +11,10 @@ GeoViewEventLogger >> eventsToHandle [
 		  GeoViewCursorCoordinatesChangedEvent.
 		  GeoViewCenterChangedEvent.
 		  GeoViewScaleChangedEvent.
-		  GeoViewPickingEvent.
 		  GeoViewLayerAddedEvent.
 		  GeoViewLayerRemovedEvent.
 		  GeoViewLayerReachMaximumDisplayedObjectsEvent.
-		  GeoViewDomainObjectsLayerProcessDataChanged.
-		  GeoViewObjectSelectionChanged.
-		  GeoViewObjectSelectionAdded.
-		  GeoViewObjectSelectionRemoved.
-		  GeoViewObjectSelectionCleared }
+		  GeoViewDomainObjectsLayerProcessDataChanged }
 ]
 
 { #category : #events }
@@ -62,36 +57,6 @@ GeoViewEventLogger >> geoViewLayerReachMaximumDisplayedObjectsEvent: anEvent [
 GeoViewEventLogger >> geoViewLayerRemovedEvent: anEvent [
 
 	anEvent traceCr.
-]
-
-{ #category : #events }
-GeoViewEventLogger >> geoViewObjectSelectionAdded: anEvent [
-
-	anEvent traceCr
-]
-
-{ #category : #events }
-GeoViewEventLogger >> geoViewObjectSelectionChanged: anEvent [
-
-	anEvent traceCr
-]
-
-{ #category : #events }
-GeoViewEventLogger >> geoViewObjectSelectionCleared: anEvent [
-
-	anEvent traceCr
-]
-
-{ #category : #events }
-GeoViewEventLogger >> geoViewObjectSelectionRemoved: anEvent [
-
-	anEvent traceCr
-]
-
-{ #category : #events }
-GeoViewEventLogger >> geoViewPickingEvent: anEvent [
-
-	anEvent pickingResult traceCr
 ]
 
 { #category : #events }

@@ -113,10 +113,21 @@ GeoViewBoundingBoxCreatorController >> keyUpEvent: anEvent [
 ]
 
 { #category : #'mouse handlers' }
+GeoViewBoundingBoxCreatorController >> mouseDownEvent: anEvent [
+
+	self isOnCreation ifFalse:[ ^ self ].
+
+	anEvent consume.
+	geoView interactionsStrategy isMapMoving: false
+]
+
+{ #category : #'mouse handlers' }
 GeoViewBoundingBoxCreatorController >> mouseMoveEvent: anEvent [
 
 	| coordinates stream |
 	self isOnCreation ifFalse:[ ^ self ].
+	
+	anEvent consume.
 	
 	coordinates := geoView absoluteCoordinatesFromGlobalPoint: anEvent position.
 	coordinates ifNil:[ ^ self ].
@@ -153,8 +164,6 @@ GeoViewBoundingBoxCreatorController >> startCreation [
 	"the object to create"
 
 	self isOnCreation: true.
-	geoView interactionsStrategy allowMapMoving: false.
-	
 	geoView focused: true.
 	
 	"the object to help user (show a text)"
@@ -176,7 +185,5 @@ GeoViewBoundingBoxCreatorController >> stopCreation [
 
 	self isOnCreation: false.
 	self helpersLayer removeAllDShapes. 
-	boundingBox := nil.
-	
-	geoView interactionsStrategy allowMapMoving: true.
+	boundingBox := nil
 ]

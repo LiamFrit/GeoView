@@ -4,20 +4,70 @@ This class provided classical mouse and keyboard ergonomic to move, scale and se
 "
 Class {
 	#name : #GeoViewInteractionsStrategy,
-	#superclass : #AbstractGeoViewInteractionsStrategy,
+	#superclass : #SmockInteractionsStrategy,
 	#instVars : [
-		'isMapMoving',
-		'mouseDownPosition',
-		'lastMouseMoveEventTimestamp'
+		'allowMapMoving',
+		'allowMapScaling',
+		'isMapMoving'
 	],
 	#category : #'GeoView-Events'
 }
 
-{ #category : #map }
-GeoViewInteractionsStrategy >> allowMapMoving: anObject [
+{ #category : #'API -- configuration' }
+GeoViewInteractionsStrategy >> allowMapMoving [
 
-	super allowMapMoving: anObject.
-	self isMapMoving: nil
+	^ allowMapMoving ifNil:[ allowMapMoving := true ]
+]
+
+{ #category : #'API -- configuration' }
+GeoViewInteractionsStrategy >> allowMapMoving: aBoolean [
+	
+	allowMapMoving := aBoolean
+]
+
+{ #category : #'API -- configuration' }
+GeoViewInteractionsStrategy >> allowMapScaling [
+
+	^ allowMapScaling ifNil:[ allowMapScaling := true ]
+]
+
+{ #category : #'API -- configuration' }
+GeoViewInteractionsStrategy >> allowMapScaling: anObject [
+
+	allowMapScaling := anObject
+]
+
+{ #category : #'dnd handlers' }
+GeoViewInteractionsStrategy >> dragEndEvent: anEvent [
+
+	self isMapMoving: false.
+]
+
+{ #category : #accessing }
+GeoViewInteractionsStrategy >> geoView [
+
+	^ self target
+]
+
+{ #category : #accessing }
+GeoViewInteractionsStrategy >> geoView: aGeoViewOrNil [
+
+	self target: aGeoViewOrNil
+]
+
+{ #category : #initialization }
+GeoViewInteractionsStrategy >> initialize [ 
+
+	super initialize.
+	
+	"default behavior"
+	self installRectangleSelectionInteraction 
+]
+
+{ #category : #private }
+GeoViewInteractionsStrategy >> installRectangleSelectionInteraction [
+		
+	self addInteraction: GeoViewRectangleSelectionEventHandler new
 ]
 
 { #category : #accessing }
@@ -36,44 +86,32 @@ GeoViewInteractionsStrategy >> isMapMoving: aBoolean [
 GeoViewInteractionsStrategy >> mouseDownEvent: anEvent [
 
 	self mouseDownPosition: anEvent position.
-	self isMapMoving: true
-]
-
-{ #category : #accessing }
-GeoViewInteractionsStrategy >> mouseDownPosition [
-
-	^ mouseDownPosition
-]
-
-{ #category : #accessing }
-GeoViewInteractionsStrategy >> mouseDownPosition: aPoint [
-
-	mouseDownPosition := aPoint
+	self allowMapMoving ifTrue:[ self isMapMoving: true ].
 ]
 
 { #category : #'mouse handlers' }
 GeoViewInteractionsStrategy >> mouseMoveEvent: anEvent [
 
-	"optimize mouse event processing"
+	"Sampling mouse events"
 	lastMouseMoveEventTimestamp ifNotNil:[ | duration |
-		self flag:'labordep: use SmockCommandRunner to sample events'.
 		duration := anEvent timestamp - lastMouseMoveEventTimestamp.
-		"BlHostPulseLoop>>defaultPulsePeriod"
-		duration < 15 milliSecond ifTrue:[ ^ self ].  
+		duration < self pulseDuration ifTrue:[ ^ self ].  
 	].
 	lastMouseMoveEventTimestamp := anEvent timestamp copy.
 
 	self sendMouseCoordinatesChanged: anEvent.
 	
 	"Process mouse map moving"
-	self isMapMoving ifTrue:[ self moveMap: anEvent ].
+	(self allowMapMoving and: [ self isMapMoving ]) ifTrue:[ 
+		self moveMap: anEvent ].
 
 ]
 
 { #category : #'mouse handlers' }
 GeoViewInteractionsStrategy >> mouseUpEvent: anEvent [
 	
-	self isMapMoving: false
+	self mouseDownPosition: nil.
+	self isMapMoving: false.
 ]
 
 { #category : #'mouse handlers' }
@@ -83,8 +121,6 @@ GeoViewInteractionsStrategy >> mouseWheelEvent: anEvent [
 	| point mapProjection graphicProjection geoPoint geoPointPx geoCenterPx difPx geoPointPxNew newPointPx geoPointFinal |
 
 	self allowMapScaling ifFalse:[ ^ self ].
-
-	anEvent consume.
 
 	point := self geoView localPointFromGlobalPoint: anEvent position.
 	
@@ -123,10 +159,8 @@ GeoViewInteractionsStrategy >> moveMap: anEvent [
 
 	| point difPx geoCenterPx |
 	
-	self allowMapMoving ifFalse:[ ^ self ].
-
-	anEvent consume.
-
+	self mouseDownPosition ifNil:[ ^ self ].
+		
 	point := anEvent position.
 	difPx := self mouseDownPosition - point.
 	difPx := difPx x @ difPx y.
@@ -134,65 +168,27 @@ GeoViewInteractionsStrategy >> moveMap: anEvent [
 	geoCenterPx ifNil: [ ^ self ].
 	geoCenterPx := geoCenterPx + difPx.
 
-	"Update mouse down position with this event"
+	self isMapMoving: true.
 	self mouseDownPosition: point copy.
-
 	self geoView centerOnGlobalPoint: geoCenterPx.
 ]
 
 { #category : #'mouse handlers' }
 GeoViewInteractionsStrategy >> primaryClickEvent: anEvent [
-	"pick the geoview on click"
-
-	| point pickingResult event |
-	self flag:'laborde, need to report bloc bug because there is a click with a drag... patch with checking mouse down position'.
-	self isMapMoving ifTrue:[^ self].
 	
-	point := anEvent position.
+	self allowSelection ifFalse:[ ^ self ].
+	self isMapMoving ifTrue:[ ^ self ].
 	
-	pickingResult := self geoView pickAt: point radius: self pickingRadius.
-	self selectionFilterBlock ifNotNil:[
-		pickingResult := pickingResult applyFilter: self selectionFilterBlock
-	].
+	self selectOnClick: anEvent 
+]
 
-	"send picking event"
-	event := GeoViewPickingEvent new.
-	event pickingResult: pickingResult.
-	self geoView dispatchEvent: event.
-
-	"process selection events"
-	(anEvent modifiers isCtrl and:[ self isMultipleSelection ])
-		ifTrue: [
-			pickingResult isEmpty ifFalse: [ | selected notSelected |
-				selected := OrderedCollection new.
-				notSelected := OrderedCollection new.
-				
-				"When a minimum of 1 object is under the mouse with Ctrl key press, add all objets of the list in the selection"
-				pickingResult results do:[ :e | e dShape isSelected ifTrue:[ selected add: e objectIndex ] ifFalse:[ notSelected add: e objectIndex ] ].
-				
-				notSelected ifNotEmpty: [ 
-					event := GeoViewObjectSelectionAdded new.
-					event objectIndexesList: notSelected.
-					self geoView dispatchEvent: event
-				].
-			
-				selected ifNotEmpty: [ 
-					event := GeoViewObjectSelectionRemoved new.
-					event objectIndexesList: selected.
-					self geoView dispatchEvent: event
-				].
-				
-			] ifTrue:[ "doing nothing here : stay the selection" ] ] 
-		ifFalse: [
-			pickingResult isEmpty
-				ifTrue: [ 
-					"When no objects are under the mouse, clear the selection" 
-					event := GeoViewObjectSelectionCleared new ]
-				ifFalse: [
-					"When a minimum of 1 object is under the mouse (without Ctrl key press), select only the first object"
-					event := GeoViewObjectSelectionChanged new.
-					event objectIndexesList: (OrderedCollection with: pickingResult firstElement objectIndex) ].
-			self geoView dispatchEvent: event ]
+{ #category : #'mouse handlers' }
+GeoViewInteractionsStrategy >> secondaryClickEvent: anEvent [
+	
+	self allowSelection ifFalse:[ ^ self ].
+	self isMapMoving ifTrue:[ ^ self ].
+	
+	self selectOnClick: anEvent
 ]
 
 { #category : #'events - processing' }

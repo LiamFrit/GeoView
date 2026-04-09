@@ -5,8 +5,14 @@ Class {
 		'cartesianCoordinates',
 		'absoluteCoordinates'
 	],
-	#category : #'GeoView-Core'
+	#category : #'GeoView-Picking'
 }
+
+{ #category : #testing }
+GeoViewPickingResult class >> isDeprecated [ 
+
+	^ true
+]
 
 { #category : #accessing }
 GeoViewPickingResult >> absoluteCoordinates [
@@ -26,18 +32,4 @@ GeoViewPickingResult >> cartesianCoordinates [
 { #category : #accessing }
 GeoViewPickingResult >> cartesianCoordinates: anObject [
 	cartesianCoordinates := anObject
-]
-
-{ #category : #printing }
-GeoViewPickingResult >> printString [
-
-	| ws string |
-	string := super printString.
-	ws := WriteStream on: String new.
-	ws nextPutAll: string.
-
-	ws space.
-	ws nextPutAll: self absoluteCoordinates printString.
-	
-	^ ws contents
 ]

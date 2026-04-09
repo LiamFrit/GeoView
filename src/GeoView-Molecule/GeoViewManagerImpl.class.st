@@ -399,7 +399,12 @@ GeoViewManagerImpl >> pickAt: aGlobalPoint [
 GeoViewManagerImpl >> pickAt: aGlobalPoint radius: aRadiusInPixels [
 	"Return all objects under a global point inside a radius in pixels"
 	
-	^ self view pickAt: aGlobalPoint radius: aRadiusInPixels
+	self
+		deprecated: 'Use pickAt:distance:'
+		transformWith: '`@receiver pickAt: `@aGlobalPoint radius: `@aRadiusInPixels'
+			-> '`@receiver pickAt: `@aGlobalPoint distance: `@aRadiusInPixels'.
+	
+	^ self view pickAt: aGlobalPoint distance: aRadiusInPixels
 ]
 
 { #category : #'services - layer' }

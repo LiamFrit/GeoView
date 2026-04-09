@@ -10,7 +10,7 @@ Class {
 	#category : #'GeoView-Tests-Core'
 }
 
-{ #category : #private }
+{ #category : #running }
 GeoViewElementTest >> createGeoViewElement [
 
 	geoView := GeoViewElement new
@@ -321,7 +321,7 @@ GeoViewElementTest >> testInteractionsStrategyDefaultValues [
 
 	self assert: geoView interactionsStrategy allowMapMoving.
 	self assert: geoView interactionsStrategy allowMapScaling.
-	self assert: geoView interactionsStrategy isMultipleSelection.
+	self assert: geoView interactionsStrategy allowMultipleSelection.
 	self assert: geoView interactionsStrategy selectionFilterBlock equals: nil
 ]
 
@@ -389,14 +389,14 @@ GeoViewElementTest >> testPickAtGeoOrigin [
 
 	| result |
 	result := geoView pickAt: (geoView globalPointFromAbsoluteCoordinates: AbsoluteCoordinates zero).	
-	self assert: result class equals: GeoViewPickingResult.
+	self assert: result class equals: GeoViewPickingFromPointResult.
 	self assert: (result timestamp <= DateAndTime now).
 	self assert: result globalPoint equals: (self geoViewSize / 2).
 	self assert: result localPoint equals: (geoView localPointFromGlobalPoint: (self geoViewSize / 2)).
 	self assert: result absoluteCoordinates equals: (geoView absoluteCoordinatesFromGlobalPoint: (self geoViewSize / 2)).
 	self assert: (result cartesianCoordinates xInMeters closeTo: 0 precision: 1e-8).
 	self assert: (result cartesianCoordinates yInMeters closeTo: 0 precision: 1e-8).
-	self assert: result radiusInPixels equals: 0.
+	self assert: result distanceInPixels equals: 0.
 	
 	self assert: result isEmpty.
 ]

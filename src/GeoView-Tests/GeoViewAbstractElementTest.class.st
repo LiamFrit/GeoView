@@ -17,13 +17,13 @@ GeoViewAbstractElementTest class >> isAbstract [
 	^ self == GeoViewAbstractElementTest
 ]
 
-{ #category : #private }
+{ #category : #running }
 GeoViewAbstractElementTest >> createGeoViewElement [
 
 	self subclassResponsibility 
 ]
 
-{ #category : #accessing }
+{ #category : #running }
 GeoViewAbstractElementTest >> geoViewSize [
 
 	^ 1000 @ 1000
@@ -230,44 +230,88 @@ GeoViewAbstractElementTest >> testObjectIndexAccessor [
 	self assert: geoView objectIndexAccessor equals: #id.
 ]
 
-{ #category : #tests }
+{ #category : #'tests - picking' }
 GeoViewAbstractElementTest >> testPickAt [
 
 	| result |
 	result := geoView pickAt: 0@0.
-	self assert: result class equals: GeoViewPickingResult.
+	self assert: result class equals: GeoViewPickingFromPointResult.
 	self assert: (result timestamp <= DateAndTime now).
 	self assert: result globalPoint equals: 0@0.
 	self assert: result localPoint equals: (geoView localPointFromGlobalPoint: 0@0).
 	self assert: result absoluteCoordinates equals: (geoView absoluteCoordinatesFromGlobalPoint: 0@0).
 	self assert: result cartesianCoordinates equals: (geoView mapProjection projLatLonToCart: result absoluteCoordinates).
-	self assert: result radiusInPixels equals: 0.
+	self assert: result distanceInPixels equals: 0.
 	
 	self assert: result isEmpty.
 ]
 
-{ #category : #tests }
+{ #category : #'tests - picking' }
+GeoViewAbstractElementTest >> testPickAtDistance [
+
+	| result |
+	result := geoView pickAt: 0 @ 0 distance: 10.
+	self assert: result distanceInPixels equals: 10.
+
+	self assert: result isEmpty
+]
+
+{ #category : #'tests - picking' }
 GeoViewAbstractElementTest >> testPickAtNil [
 
 	| result |
 	result := geoView pickAt: nil.
-	self assert: result class equals: GeoViewPickingResult.
+	self assert: result class equals: GeoViewPickingFromPointResult.
 	self assert: (result timestamp <= DateAndTime now).
 	self assert: result globalPoint isNil.
 	self assert: result localPoint isNil.
 	self assert: result absoluteCoordinates isNil.
 	self assert: result cartesianCoordinates isNil.
-	self assert: result radiusInPixels equals: 0.
+	self assert: result distanceInPixels equals: 0.
 	
 	self assert: result isEmpty.
 ]
 
-{ #category : #tests }
-GeoViewAbstractElementTest >> testPickAtRadius [
+{ #category : #'tests - picking' }
+GeoViewAbstractElementTest >> testPickInRectangle [
+
+	| result rectangle |
+	rectangle := 0@0 extent: (self geoViewSize / 2).
+	self assert: rectangle width > 1. self assert: rectangle height > 1.
+	
+	result := geoView pickInRectangle: rectangle.
+	self assert: result class equals: SmockPickingFromRectangleResult.
+	self assert: (result timestamp <= DateAndTime now).
+	self assert: result globalRectangle equals: rectangle.
+	self assert: result localRectangle equals: ((geoView localPointFromGlobalPoint: rectangle origin) corner: (geoView localPointFromGlobalPoint: rectangle corner)).
+	self assert: result isInclusive.
+	self assert: result isEmpty.
+]
+
+{ #category : #'tests - picking' }
+GeoViewAbstractElementTest >> testPickInRectangleInclusive [
+
+	| result rectangle |
+	rectangle := 0@0 extent: (self geoViewSize / 2).
+	result := geoView pickInRectangle: rectangle inclusive: false.
+	
+	self assert: result class equals: SmockPickingFromRectangleResult.
+	self assert: (result timestamp <= DateAndTime now).
+	self assert: result globalRectangle equals: rectangle.
+	self assert: result localRectangle equals: ((geoView localPointFromGlobalPoint: rectangle origin) corner: (geoView localPointFromGlobalPoint: rectangle corner)).
+	self deny: result isInclusive.
+	self assert: result isEmpty.
+]
+
+{ #category : #'tests - picking' }
+GeoViewAbstractElementTest >> testPickInRectangleNil [
 
 	| result |
-	result := geoView pickAt: 0@0 radius: 10.
-	self assert: result radiusInPixels equals: 10.
+	result := geoView pickInRectangle: nil.
+	self assert: result class equals: SmockPickingFromRectangleResult.
+	self assert: (result timestamp <= DateAndTime now).
+	self assert: result globalRectangle isNil.
+	self assert: result localRectangle isNil.
 	
 	self assert: result isEmpty.
 ]

@@ -286,6 +286,42 @@ GeoViewExamples class >> exampleBoundingBoxCreator [
 ]
 
 { #category : #'examples - interactions' }
+GeoViewExamples class >> exampleBoundingBoxCreatorWithoutMapMoving [
+	"This example show how to create several BoundingBoxes from scratch"
+
+	| element layer button controller |
+	element := GeoViewElement new id: #geoView.
+	element interactionsStrategy allowMapMoving: false; allowMapScaling: false.
+	
+	"OSM layer"
+	element addLayer: (GeoViewMapTilesLayer newWithOpenStreetMap).
+	
+	"Bounding box layer"
+	layer := GeoViewDomainObjectsLayer new name: #boundingbox.
+	layer setProcessData: (GeoBoundingBoxProjectedProcessData new) forClass: GeoBoundingBox. 
+	element addLayer: layer.
+	
+	"Helpers layer"
+	layer := GeoViewDShapesLayer new name: #helpers.
+	element addLayer: layer.
+	
+	"Create interaction button and event handlers"
+	controller := GeoViewBoundingBoxCreatorController new.
+	element addEventHandler: controller.
+	
+	button := self createBlButton: 'Create Bounding Box'.
+	button addEventHandlerOn: BlClickEvent do: [ :e |
+		e consume.
+		controller isOnCreation 
+			ifFalse:[ controller startCreation ] 
+			ifTrue:[ controller stopCreation ].
+	].
+	element addChild: button.
+		
+	^ self openViewInWindow: element
+]
+
+{ #category : #'examples - interactions' }
 GeoViewExamples class >> exampleCitiesHover [
 	"This example show how to implement a mouse hover interaction to do something"
 
@@ -303,6 +339,169 @@ GeoViewExamples class >> exampleCitiesHover [
 	"add cities"
 	nb := 1.
 	geoView addObjects: (self largest50Cities collect:[ :e | e key: nb; image: (self iconNamed: #remote). nb := nb + 1. e ]).
+
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - interactions' }
+GeoViewExamples class >> exampleCitiesMonoSelection [
+	"This example show how to implement a mouse selection interaction but without rectangle"
+
+	| geoView processData instructionsText |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	geoView interactionsStrategy allowMultipleSelection: false.
+	
+	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
+		
+	"Change the process data of GeoPosition to use a custom one which render the selection"
+	processData := GeoPositionWithSelectionExampleProcessData new.
+	geoView getLayers last setProcessData: processData forClass: GeoPosition.
+	
+	"add cities"
+	geoView addObjects: (self largest50Cities doWithIndex: [ :e :i | e key: i; image: (self iconNamed: #remote) ]).
+
+	"process selection events to select objects"
+	geoView addEventHandlerOn: SmockObjectSelectionChanged do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+
+	"Create a text to display instructions"
+	instructionsText := BlTextElement new
+				background: Color white;
+				effect: (BlGaussianShadowEffect color: (Color gray alpha: 0.5) width: 10 offset: 0@0);
+	        constraintsDo: [ :constraints |
+		        constraints horizontal fitContent.
+		        constraints vertical exact: 15.
+		        constraints padding: (BlInsets all: 10.0) ];
+	        id: #instructionsText; text: 'Click on a city to select it, but you can select only one city.' asRopedText;
+	        yourself.
+	geoView addChild: instructionsText.
+
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - interactions' }
+GeoViewExamples class >> exampleCitiesMultipleSelection [
+	"This example show how to implement a mouse selection interaction and its visual appearence"
+
+	| geoView processData instructionsText |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
+		
+	"Change the process data of GeoPosition to use a custom one which render the selection"
+	processData := GeoPositionWithSelectionExampleProcessData new.
+	geoView getLayers last setProcessData: processData forClass: GeoPosition.
+	
+	"add cities"
+	geoView addObjects: (self largest50Cities doWithIndex: [ :e :i | e key: i; image: (self iconNamed: #remote) ]).
+
+	"process selection events to select objects"
+	geoView addEventHandlerOn: SmockObjectSelectionChanged do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionAdded do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionRemoved do: [ :e | 
+		geoView clearSelectedObjectIndexes. 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionCleared do: [ :e | 
+		geoView clearSelectedObjectIndexes. 
+	].
+
+	"Create a text to display instructions"
+	instructionsText := BlTextElement new
+				background: Color white;
+				effect: (BlGaussianShadowEffect color: (Color gray alpha: 0.5) width: 10 offset: 0@0);
+	        constraintsDo: [ :constraints |
+		        constraints horizontal fitContent.
+		        constraints vertical exact: 15.
+		        constraints padding: (BlInsets all: 10.0) ];
+	        id: #instructionsText; text: 'Click on a city to select it. Maintain Shift + Mouse Drag to draw a rectangle. Release the mouse to select cities inside the rectangle.' asRopedText;
+	        yourself.
+	geoView addChild: instructionsText.
+
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - interactions' }
+GeoViewExamples class >> exampleCitiesMultipleSelectionWithoutRectangle [
+	"This example show how to implement a mouse selection interaction and its visual appearence"
+
+	| geoView processData instructionsText |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
+	geoView interactionsStrategy interactionsList detect:[ :e | e class = GeoViewRectangleSelectionEventHandler ] ifFound: [ :e | geoView interactionsStrategy removeInteraction: e ].
+		
+	"Change the process data of GeoPosition to use a custom one which render the selection"
+	processData := GeoPositionWithSelectionExampleProcessData new.
+	geoView getLayers last setProcessData: processData forClass: GeoPosition.
+	
+	"add cities"
+	geoView addObjects: (self largest50Cities doWithIndex: [ :e :i | e key: i; image: (self iconNamed: #remote) ]).
+
+	"process selection events to select objects"
+	geoView addEventHandlerOn: SmockObjectSelectionChanged do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionAdded do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionRemoved do: [ :e | 
+		geoView clearSelectedObjectIndexes. 
+	].
+	geoView addEventHandlerOn: SmockObjectSelectionCleared do: [ :e | 
+		geoView clearSelectedObjectIndexes. 
+	].
+
+	"Create a text to display instructions"
+	instructionsText := BlTextElement new
+				background: Color white;
+				effect: (BlGaussianShadowEffect color: (Color gray alpha: 0.5) width: 10 offset: 0@0);
+	        constraintsDo: [ :constraints |
+		        constraints horizontal fitContent.
+		        constraints vertical exact: 15.
+		        constraints padding: (BlInsets all: 10.0) ];
+	        id: #instructionsText; text: 'Click on a city to select it. Maintain Shift + Mouse Drag to draw a rectangle. Release the mouse to select cities inside the rectangle.' asRopedText;
+	        yourself.
+	geoView addChild: instructionsText.
+
+	^ self openViewInWindow: geoView
+]
+
+{ #category : #'examples - interactions' }
+GeoViewExamples class >> exampleCitiesNoSelection [
+	"This example show how to implement a mouse selection interaction but without rectangle"
+
+	| geoView processData instructionsText |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	geoView interactionsStrategy allowSelection: false.
+	
+	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
+		
+	"Change the process data of GeoPosition to use a custom one which render the selection"
+	processData := GeoPositionWithSelectionExampleProcessData new.
+	geoView getLayers last setProcessData: processData forClass: GeoPosition.
+	
+	"add cities"
+	geoView addObjects: (self largest50Cities doWithIndex: [ :e :i | e key: i; image: (self iconNamed: #remote) ]).
+
+	"process selection events to select objects"
+	geoView addEventHandlerOn: SmockObjectSelectionChanged do: [ :e | 
+		geoView selectedObjectIndexes: (e objectIndexesList). 
+	].
+
+	"Create a text to display instructions"
+	instructionsText := BlTextElement new
+				background: Color white;
+				effect: (BlGaussianShadowEffect color: (Color gray alpha: 0.5) width: 10 offset: 0@0);
+	        constraintsDo: [ :constraints |
+		        constraints horizontal fitContent.
+		        constraints vertical exact: 15.
+		        constraints padding: (BlInsets all: 10.0) ];
+	        id: #instructionsText; text: 'Click on a city to select it, but you can select only one city.' asRopedText;
+	        yourself.
+	geoView addChild: instructionsText.
 
 	^ self openViewInWindow: geoView
 ]
@@ -1107,6 +1306,30 @@ GeoViewExamples class >> exampleOrthonormicVsOrthodromicFromParisToNewyork [
 	element addObject: segment1.
 
 	^ self openViewInWindow: element
+]
+
+{ #category : #'examples - interactions' }
+GeoViewExamples class >> exampleRectangleSelectionWithoutMapMoving [
+	"This example show how to have a selection rectangle enable but without possibility to move the map"
+
+	| geoView instructionsText |
+	geoView := GeoViewUtils createGeoViewForGeoObjects.
+	geoView interactionsStrategy allowMapMoving: false; allowMapScaling: false.
+	geoView addLayerAtFirst: (GeoViewMapTilesLayer newWithNASABlueMarble).
+
+	"Create a text to display instructions"
+	instructionsText := BlTextElement new
+				background: Color white;
+				effect: (BlGaussianShadowEffect color: (Color gray alpha: 0.5) width: 10 offset: 0@0);
+	        constraintsDo: [ :constraints |
+		        constraints horizontal fitContent.
+		        constraints vertical exact: 15.
+		        constraints padding: (BlInsets all: 10.0) ];
+	        id: #instructionsText; text: 'Maintain Shift + Mouse Drag to draw a selection rectangle.' asRopedText;
+	        yourself.
+	geoView addChild: instructionsText.
+
+	^ self openViewInWindow: geoView
 ]
 
 { #category : #'examples - tiles' }
