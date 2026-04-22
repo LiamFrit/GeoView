@@ -93,11 +93,12 @@ GeoViewInteractionsStrategy >> mouseDownEvent: anEvent [
 GeoViewInteractionsStrategy >> mouseMoveEvent: anEvent [
 
 	"Sampling mouse events"
-	lastMouseMoveEventTimestamp ifNotNil:[ | duration |
-		duration := anEvent timestamp - lastMouseMoveEventTimestamp.
+	| lastMouseMoveEvent |
+	lastMouseMoveEvent := self getLastEvent: BlMouseMoveEvent.
+	lastMouseMoveEvent ifNotNil:[ | duration |
+		duration := anEvent timestamp - lastMouseMoveEvent timestamp.
 		duration < self pulseDuration ifTrue:[ ^ self ].  
 	].
-	lastMouseMoveEventTimestamp := anEvent timestamp copy.
 
 	self sendMouseCoordinatesChanged: anEvent.
 	
@@ -176,10 +177,16 @@ GeoViewInteractionsStrategy >> moveMap: anEvent [
 { #category : #'mouse handlers' }
 GeoViewInteractionsStrategy >> primaryClickEvent: anEvent [
 	
+	| from distance |
 	self allowSelection ifFalse:[ ^ self ].
 	self isMapMoving ifTrue:[ ^ self ].
 	
-	self selectOnClick: anEvent 
+	"determine if selection is available depending mouse cursor distance between mouseDown and mouseClick"
+	from := (self getLastEvent: BlPrimaryMouseDownEvent) ifNotNil:[ :e | e position ] ifNil:[ anEvent position ].
+	distance := anEvent position distanceTo: from.
+	distance > self pickingRadius ifTrue:[ ^ self ].
+	
+	self selectOnClick: anEvent
 ]
 
 { #category : #'mouse handlers' }
