@@ -41,7 +41,7 @@ GeoViewManagerParameters >> setSelectionManagerName: aComponentName [
 	"Setup a selection manager"
 ]
 
-{ #category : #'parameters - selection manager' }
+{ #category : #'parameters - symbology manager' }
 GeoViewManagerParameters >> setSymbologyManagerName: aComponentName [
 	"Setup a symbology manager"
 ]
