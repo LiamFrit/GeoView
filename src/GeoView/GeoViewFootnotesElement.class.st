@@ -12,7 +12,7 @@ Class {
 GeoViewFootnotesElement >> addNote: aString [
 
 	| label |
-	label := BlTextElement new.
+	label := (BlTextElement new) id: #note.
 	label text: (aString asRopedText attributes: textAttributes).
 	label background: (Color black alpha: 0.6).
 	label constraintsDo: [ :c |

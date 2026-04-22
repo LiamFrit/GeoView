@@ -105,6 +105,7 @@ GeoViewElement >> initializeLayerListElement [
 			c horizontal matchParent.
 			c vertical matchParent ].
 
+	"inject the layer list as a dependency"
 	layerListElement layers: self layers.
 
 	self inUIProcessDo: [ self addChildFirst: layerListElement ]
@@ -161,16 +162,17 @@ GeoViewElement >> updateFootnotes [
 
 	| notes |
 	self footnotesElement ifNil: [ ^ self ].
+	self footnotesElement removeAllNotes.
 
 	notes := OrderedCollection new.
-	notes addAll: (self layers
+	notes addAll: (self layers copy
 			 collect: [ :l | l footnotes ]
 			 thenSelect: [ :e | e notNil and: [ e notEmpty ] ]).
 
 	(self footnotes notNil and: [ self footnotes notEmpty ]) ifTrue: [
 		notes add: self footnotes ].
-
-	self footnotesElement removeAllNotes.
+	
+	notes ifEmpty:[ ^ self ].
 	self footnotesElement addNotes: notes
 ]
 
