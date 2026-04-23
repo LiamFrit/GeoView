@@ -7,7 +7,9 @@ Class {
 	#traits : 'GeoViewManager + SmockSelectionManagerEvents + SmockSymbologyManagerEvents + GeoViewManagerObjectsServices + GeoViewManagerPickingServices + GeoViewManagerServices + GeoViewManagerParameters',
 	#classTraits : 'GeoViewManager classTrait + SmockSelectionManagerEvents classTrait + SmockSymbologyManagerEvents classTrait + GeoViewManagerObjectsServices classTrait + GeoViewManagerPickingServices classTrait + GeoViewManagerServices classTrait + GeoViewManagerParameters classTrait',
 	#instVars : [
-		'view'
+		'view',
+		'linkedSymbologyManagerName',
+		'linkedSelectionManagerName'
 	],
 	#category : #'GeoView-Molecule-Impl'
 }
@@ -15,15 +17,14 @@ Class {
 { #category : #'aggregated components' }
 GeoViewManagerImpl >> activateComponents [
 
-	(MolComponentManager default homeServices
-		 isWaitingForActivation: SmockSymbologyManagerImpl
-		 named: self componentName) ifTrue: [
-		SmockSymbologyManagerImpl activate: self componentName ].
+	| name |
+	linkedSymbologyManagerName ifNil: [
+			name := (#SymbologyManagerOf , self componentName) asSymbol.
+			SmockSymbologyManagerImpl activate: name ].
 
-	(MolComponentManager default homeServices
-		 isWaitingForActivation: SmockSelectionManagerImpl
-		 named: self componentName) ifTrue: [
-		SmockSelectionManagerImpl activate: self componentName ]
+	linkedSelectionManagerName ifNil: [
+			name := (#SelectionManagerOf , self componentName) asSymbol.
+			SmockSelectionManagerImpl activate: name ]
 ]
 
 { #category : #'services - layer' }
@@ -318,24 +319,36 @@ GeoViewManagerImpl >> haveObjectIndex: anIndex [
 
 { #category : #'aggregated components' }
 GeoViewManagerImpl >> initializeSelectionManager [
-	"If a selection manager not exists, instanciate one"
+	"Start a default selection manager to use it, can be changed after"
 
-	(MolUtils allComponentInstancesOfType: SmockSelectionManager)
-		ifEmpty: [
-			SmockSelectionManagerImpl deploy.
-			SmockSelectionManagerImpl instantiate: self componentName.
-			self setSelectionManagerName: self componentName ]
+	| name |
+	name := (#SelectionManagerOf, self componentName) asSymbol.
+	SmockSelectionManagerImpl deploy.
+	SmockSelectionManagerImpl instantiate: name.
+
+	self
+		forServices: SmockSelectionManagerServices
+		useProvider: name.
+	self
+		forEvents: SmockSelectionManagerEvents
+		useProducer: name
 ]
 
 { #category : #'aggregated components' }
 GeoViewManagerImpl >> initializeSymbologyManager [
-	"If a symbology manager not exists, instanciate one"
+	"Start a default symbology manager to use it, can be changed after"
 
-	(MolUtils allComponentInstancesOfType: SmockSymbologyManager)
-		ifEmpty: [
-			SmockSymbologyManagerImpl deploy.
-			SmockSymbologyManagerImpl instantiate: self componentName.
-			self setSymbologyManagerName: self componentName ]
+	| name |
+	name := (#SymbologyManagerOf, self componentName) asSymbol.
+	SmockSymbologyManagerImpl deploy.
+	SmockSymbologyManagerImpl instantiate: name.
+
+	self
+		forServices: SmockSymbologyManagerServices
+		useProvider: name.
+	self
+		forEvents: SmockSymbologyManagerEvents
+		useProducer: name
 ]
 
 { #category : #'private - events' }
@@ -377,15 +390,14 @@ GeoViewManagerImpl >> mouseCursorCoordinatesChanged: anAbsoluteCoordinates [
 { #category : #'aggregated components' }
 GeoViewManagerImpl >> passivateComponents [
 
-	(MolComponentManager default homeServices
-		 instanceOf: SmockSymbologyManagerImpl
-		 named: self componentName) ifNotNil: [
-		SmockSymbologyManagerImpl passivate: self componentName ].
-	
-	(MolComponentManager default homeServices
-		 instanceOf: SmockSelectionManagerImpl
-		 named: self componentName) ifNotNil: [
-		SmockSelectionManagerImpl passivate: self componentName ]
+	| name |
+	linkedSymbologyManagerName ifNil: [
+			name := (#SymbologyManagerOf , self componentName) asSymbol.
+			SmockSymbologyManagerImpl passivate: name ].
+
+	linkedSelectionManagerName ifNil: [
+			name := (#SelectionManagerOf , self componentName) asSymbol.
+			SmockSelectionManagerImpl passivate: name ]
 ]
 
 { #category : #'services - picking' }
@@ -419,15 +431,14 @@ GeoViewManagerImpl >> removeAllLayers [
 { #category : #'aggregated components' }
 GeoViewManagerImpl >> removeComponents [
 
-	(MolComponentManager default homeServices
-		 instanceOf: SmockSymbologyManagerImpl
-		 named: self componentName) ifNotNil: [
-		SmockSymbologyManagerImpl remove: self componentName ].
-	
-	(MolComponentManager default homeServices
-		 instanceOf: SmockSelectionManagerImpl
-		 named: self componentName) ifNotNil: [
-		SmockSelectionManagerImpl remove: self componentName ]
+	| name |
+	linkedSymbologyManagerName ifNil: [
+			name := (#SymbologyManagerOf , self componentName) asSymbol.
+			SmockSymbologyManagerImpl remove: name ].
+
+	linkedSelectionManagerName ifNil: [
+			name := (#SelectionManagerOf , self componentName) asSymbol.
+			SmockSelectionManagerImpl remove: name ]
 ]
 
 { #category : #'services - layer' }
@@ -536,6 +547,13 @@ GeoViewManagerImpl >> setScaleInMeters: aNumber [
 GeoViewManagerImpl >> setSelectionManagerName: aComponentName [
 	"Setup a selection manager"
 
+	"stop previous started component if exists"
+	linkedSelectionManagerName ifNil:[
+		SmockSelectionManagerImpl stop: (#SelectionManagerOf, self componentName) asSymbol.
+	].
+
+	linkedSelectionManagerName := aComponentName.
+
 	self
 		forServices: SmockSelectionManagerServices
 		useProvider: aComponentName.
@@ -545,9 +563,16 @@ GeoViewManagerImpl >> setSelectionManagerName: aComponentName [
 		useProducer: aComponentName
 ]
 
-{ #category : #'parameters - selection manager' }
+{ #category : #'parameters - symbology manager' }
 GeoViewManagerImpl >> setSymbologyManagerName: aComponentName [
 	"Setup a symbology manager"
+
+	"stop previous started component if exists"
+	linkedSymbologyManagerName ifNil:[
+		SmockSymbologyManagerImpl stop: (#SymbologyManagerOf, self componentName) asSymbol.
+	].
+
+	linkedSymbologyManagerName := aComponentName.
 
 	self
 		forServices: SmockSymbologyManagerServices

@@ -138,10 +138,9 @@ GeoViewAbstractElement >> addObject: anUserObject [
 
 	anUserObject ifNil: [ ^ self ].
 
-	self layerListMutex criticalReleasingOnError:[
-		self layers do: [ :e |
-		e haveDomainObjects ifTrue: [ e addObject: anUserObject ] ]
-	]
+	self layers copy
+		select: [ :l | l haveDomainObjects ]
+		thenDo: [ :l | l addObject: anUserObject ]
 ]
 
 { #category : #'API -- objects management' }
@@ -150,16 +149,15 @@ GeoViewAbstractElement >> addObjects: anUserObjectList [
 	(anUserObjectList isNil or: [ anUserObjectList isEmpty ]) ifTrue: [
 		^ self ].
 
-	self layerListMutex criticalReleasingOnError:[
-		self layers do: [ :e |
-			e haveDomainObjects ifTrue: [ e addObjects: anUserObjectList ] ]
-	]
+	self layers copy
+		select: [ :l | l haveDomainObjects ]
+		thenDo: [ :l | l addObjects: anUserObjectList ]
 ]
 
 { #category : #'API -- filters' }
 GeoViewAbstractElement >> applyDisplayFilterToAllLayers: aDisplayFilter [
 
-	self layers
+	self layers copy
 		select: [ :l | l haveGraphicModel ]
 		thenDo: [ :l | l displayFilter: aDisplayFilter ]
 ]
@@ -170,8 +168,7 @@ GeoViewAbstractElement >> attachSpace [
 	super attachSpace.
 
 	"send message to all layers"
-	self layerListMutex criticalReleasingOnError: [
-		self layers do: [ :e | e addedToScene: self ] ]
+	self layers copy do: [ :e | e addedToScene: self ]
 ]
 
 { #category : #'API -- scale and center' }
@@ -269,8 +266,7 @@ GeoViewAbstractElement >> detachSpace [
 	super detachSpace.
 
 	"send message to all layers"
-	self layerListMutex criticalReleasingOnError: [
-		self layers do: [ :e | e removedFromScene: self ] ]
+	self layers copy do: [ :e | e removedFromScene: self ]
 ]
 
 { #category : #'API -- filters' }
@@ -300,9 +296,7 @@ GeoViewAbstractElement >> displayToGraphicProjection: aGeoView2DProjection [
 	displayToGraphicProjection ifNil: [ ^ self ].
 
 	"inject the projection to all layers"
-	self layerListMutex criticalReleasingOnError:[
-		self layers do:[ :l | l graphicProjection: displayToGraphicProjection ]
-	].
+	self layers copy do:[ :l | l graphicProjection: displayToGraphicProjection ].
 	
 	self updateDisplayToGraphicProjection
 ]
@@ -381,10 +375,11 @@ GeoViewAbstractElement >> hasLayer [
 
 { #category : #'API -- objects management' }
 GeoViewAbstractElement >> haveObjectIndex: anIndex [
-	
-	anIndex ifNil:[ ^ nil ].
 
-	^ self layers anySatisfy: [ :e | e haveDomainObjects ifTrue:[ e haveObjectIndex: anIndex ] ]
+	anIndex ifNil: [ ^ nil ].
+
+	^ self layers copy anySatisfy: [ :e |
+		  e haveDomainObjects ifTrue: [ e haveObjectIndex: anIndex ] ]
 ]
 
 { #category : #initialization }
@@ -678,6 +673,7 @@ GeoViewAbstractElement >> removeLayer: aLayer [
 		self unconfigureLayer: aLayer.
 		self layers remove: aLayer
 	].
+
 	self isAttachedToSceneGraph ifTrue:[ aLayer removedFromScene: self ].
 	
 	"Send layer added event"
@@ -691,10 +687,9 @@ GeoViewAbstractElement >> removeObject: anUserObject [
 
 	anUserObject ifNil: [ ^ self ].
 
-	self layerListMutex criticalReleasingOnError:[
-		self layers do: [ :e |
-			e haveDomainObjects ifTrue: [ e removeObject: anUserObject ] ]
-	]
+	self layers copy
+		select: [ :l | l haveDomainObjects ]
+		thenDo: [ :l | l removeObject: anUserObject ]
 ]
 
 { #category : #'API -- objects management' }
@@ -703,11 +698,9 @@ GeoViewAbstractElement >> removeObjects: anUserObjectList [
 	anUserObjectList ifNil: [ ^ self ].
 	anUserObjectList ifEmpty: [ ^ self ].
 
-	self layerListMutex criticalReleasingOnError:[
-		self layers do: [ :e |
-			e haveDomainObjects ifTrue: [ e removeObjects: anUserObjectList ] ]
-	]
-
+	self layers copy
+		select: [ :l | l haveDomainObjects ]
+		thenDo: [ :l | l removeObjects: anUserObjectList ]
 ]
 
 { #category : #private }
@@ -837,11 +830,7 @@ GeoViewAbstractElement >> updateDisplayToGraphicProjection [
 GeoViewAbstractElement >> updateModel: aContext [
 
 	aContext ifNil:[ ^ self ].
-	self layers ifEmpty: [ ^ self ].
-
-	self layerListMutex criticalReleasingOnError:[
-		self layers do: [ :l | l updateModel: aContext ]
-	]
+	self layers copy do: [ :l | l updateModel: aContext ]
 ]
 
 { #category : #'API -- objects management' }
@@ -849,10 +838,9 @@ GeoViewAbstractElement >> updateObject: anUserObject [
 
 	anUserObject ifNil: [ ^ self ].
 
-	self layerListMutex criticalReleasingOnError:[
-		self layers do: [ :e |
-			e haveDomainObjects ifTrue: [ e updateObject: anUserObject ] ]
-	]
+	self layers copy
+		select: [ :l | l haveDomainObjects ]
+		thenDo: [ :l | l updateObject: anUserObject ]
 ]
 
 { #category : #'API -- objects management' }
@@ -861,10 +849,9 @@ GeoViewAbstractElement >> updateObjects: anUserObjectList [
 	anUserObjectList ifNil: [ ^ self ].
 	anUserObjectList ifEmpty: [ ^ self ].
 
-	self layerListMutex criticalReleasingOnError:[
-		self layers do: [ :e |
-			e haveDomainObjects ifTrue: [ e updateObjects: anUserObjectList ] ]
-	]
+	self layers copy
+		select: [ :l | l haveDomainObjects ]
+		thenDo: [ :l | l updateObjects: anUserObjectList ]
 ]
 
 { #category : #'API -- states' }
@@ -873,9 +860,9 @@ GeoViewAbstractElement >> updateState: aStateSymbol withObjectIndexes: aKeyList 
 	aKeyList ifNil: [ ^ self ].
 	aStateSymbol ifNil: [ ^ self ].
 
-	self layers do: [ :l |
-		l haveDomainObjects ifTrue: [
-			l updateState: aStateSymbol withIndexes: aKeyList ] ]
+	self layers copy
+		select: [ :l | l haveDomainObjects ]
+		thenDo: [ :l | l updateState: aStateSymbol withIndexes: aKeyList ]
 ]
 
 { #category : #private }
