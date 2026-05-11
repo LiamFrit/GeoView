@@ -637,7 +637,7 @@ GeoViewAbstractElement >> postConfigurePickingResult: aPickingResult [
 				distA := a gShape position distanceTo: aPickingResult globalRectangle origin.
 				distB := b gShape position distanceTo: aPickingResult globalRectangle origin.
 				
-				distA > distB
+				distA < distB
 			]
 		]
 	]

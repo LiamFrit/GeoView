@@ -356,9 +356,9 @@ GeoViewAbstractElementTest >> testPickInRectangleResultsOrder [
 	self assert: listObjects size equals: 3.
 	self assert: result results size equals: 3.
 	
-	self assert: result results first gShape id equals: 1.
+	self assert: result results first gShape id equals: 3.
 	self assert: (result results at:2) gShape id equals: 2.
-	self assert: (result results at:3) gShape id equals: 3.
+	self assert: (result results at:3) gShape id equals: 1.
 	
 	geoView removeObjects: listObjects
 ]
