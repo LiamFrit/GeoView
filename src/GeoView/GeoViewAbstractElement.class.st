@@ -628,6 +628,18 @@ GeoViewAbstractElement >> postConfigurePickingResult: aPickingResult [
 	aPickingResult isPointPicking ifTrue:[
 		"When picked from a circle, order results by distance from the center"
 		aPickingResult applyOrder: [ :a :b | a distanceInPixels < b distanceInPixels ] ].
+	
+	aPickingResult isShapePicking ifTrue:[
+		aPickingResult isRectanglePicking ifTrue:[
+			"When picked from a rectangle, order results by distance from the origin"
+			aPickingResult applyOrder: [ :a :b | | distA distB |
+				distA := a gShape position distanceTo: aPickingResult globalRectangle origin.
+				distB := b gShape position distanceTo: aPickingResult globalRectangle origin.
+				
+				distA < distB
+			]
+		]
+	]
 ]
 
 { #category : #'private - picking' }
