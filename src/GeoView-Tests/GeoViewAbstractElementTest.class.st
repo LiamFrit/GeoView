@@ -17,6 +17,24 @@ GeoViewAbstractElementTest class >> isAbstract [
 	^ self == GeoViewAbstractElementTest
 ]
 
+{ #category : #private }
+GeoViewAbstractElementTest >> createGeoCircles: aQuantity color: aColor radius: aRadiusInMeters with: aListPositionAbsCoord [
+
+	| list |
+	list := OrderedCollection new.
+
+	aListPositionAbsCoord keysAndValuesDo: [:i :posAbs |
+		| object |
+		object := GeoCircle new.
+		object key: i.
+		object fillStyle: aColor asSmockFillStyle.
+		object absoluteCoordinates: posAbs.
+		object radiusInMeters: aRadiusInMeters.
+		list add: object ].
+
+	^ list
+]
+
 { #category : #running }
 GeoViewAbstractElementTest >> createGeoViewElement [
 
@@ -314,6 +332,35 @@ GeoViewAbstractElementTest >> testPickInRectangleNil [
 	self assert: result localRectangle isNil.
 	
 	self assert: result isEmpty.
+]
+
+{ #category : #'tests - picking' }
+GeoViewAbstractElementTest >> testPickInRectangleResultsOrder [
+
+	| result rectangle listPositions index listObjects layer |
+	rectangle := 0@0 extent: (self geoViewSize / 2).
+	self assert: rectangle width > 1. self assert: rectangle height > 1.
+	
+	layer := GeoViewUtils createGeoObjectsLayer: #layer.
+	layer isVisible: true.
+	geoView addLayer: layer.
+	
+	listPositions := OrderedCollection with: (AbsoluteCoordinates latitudeInDegrees: 0.1 longitudeInDegrees: -0.1).
+	listPositions add: (AbsoluteCoordinates latitudeInDegrees: 0.15 longitudeInDegrees: -0.1).
+	listPositions add: (AbsoluteCoordinates latitudeInDegrees: 0.25 longitudeInDegrees: -0.1).
+	index := 5000.
+	listObjects := self createGeoCircles: index color: Color random radius: 100000 with: listPositions.
+	geoView addObjects: listObjects.
+	
+	result := geoView pickInRectangle: rectangle.
+	self assert: listObjects size equals: 3.
+	self assert: result results size equals: 3.
+	
+	self assert: result results first gShape id equals: 3.
+	self assert: (result results at:2) gShape id equals: 2.
+	self assert: (result results at:3) gShape id equals: 1.
+	
+	geoView removeObjects: listObjects
 ]
 
 { #category : #tests }
