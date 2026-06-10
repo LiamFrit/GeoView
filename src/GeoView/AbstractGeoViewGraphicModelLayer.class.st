@@ -235,50 +235,25 @@ AbstractGeoViewGraphicModelLayer >> initializeDisplayModel [
 AbstractGeoViewGraphicModelLayer >> initializeGraphicModel [
 
 	self graphicModel: (GeoViewModel new name: 'Graphic Shape Model').
-
+	
 	"Initialize a default graphic projection to work locally, will be change when the layer will be added in a geoview"
 	self graphicModel projection: GeoView2DProjection new.
-
+	
 	"Setup all DShape process datas"
-	self graphicModel
-		setProcessData: DCompositeShapeGeoViewProcessData new
-		forClass: SmockDCompositeShape.
-	self graphicModel
-		setProcessData: DSymbolGeoViewProcessData new
-		forClass: SmockDSymbol.
-	self graphicModel
-		setProcessData: DImageGeoViewProcessData new
-		forClass: SmockDImage.
-	self graphicModel
-		setProcessData: DCircleGeoViewProcessData new
-		forClass: SmockDCircle.
-	self graphicModel
-		setProcessData: DEllipseGeoViewProcessData new
-		forClass: SmockDEllipse.
-	self graphicModel
-		setProcessData: DTextGeoViewProcessData new
-		forClass: SmockDText.
-	self graphicModel
-		setProcessData: DPolygonGeoViewProcessData new
-		forClass: SmockDPolygon.
-	self graphicModel
-		setProcessData: DPolylineGeoViewProcessData new
-		forClass: SmockDPolyline.
-	self graphicModel
-		setProcessData: DRectangleGeoViewProcessData new
-		forClass: SmockDRectangle.
-	self graphicModel
-		setProcessData: DSectorGeoViewProcessData new
-		forClass: SmockDSector.
-	self graphicModel
-		setProcessData: DArcBandGeoViewProcessData new
-		forClass: SmockDArcBand.
-	self graphicModel
-		setProcessData: DSegmentGeoViewProcessData new
-		forClass: SmockDSegment.
-	self graphicModel
-		setProcessData: DMultiPolylinesGeoViewProcessData new
-		forClass: SmockDMultiPolylines
+	self graphicModel setProcessData: DCompositeShapeGeoViewProcessData new forClass: SmockDCompositeShape.
+	self graphicModel setProcessData: DSymbolGeoViewProcessData new forClass: SmockDSymbol.
+	self graphicModel setProcessData: DImageGeoViewProcessData new forClass: SmockDImage.
+	self graphicModel setProcessData: DCircleGeoViewProcessData new forClass: SmockDCircle.
+	self graphicModel setProcessData: DEllipseGeoViewProcessData new forClass: SmockDEllipse. 
+	self graphicModel setProcessData: DTextGeoViewProcessData new forClass: SmockDText. 
+	self graphicModel setProcessData: DPolygonGeoViewProcessData new forClass: SmockDPolygon.
+	self graphicModel setProcessData: DPolylineGeoViewProcessData new forClass: SmockDPolyline.
+	self graphicModel setProcessData: DRectangleGeoViewProcessData new forClass: SmockDRectangle.
+	self graphicModel setProcessData: DSectorGeoViewProcessData new forClass: SmockDSector.
+	self graphicModel setProcessData: DSegmentGeoViewProcessData new forClass: SmockDSegment.
+	self graphicModel setProcessData: DMultiPolylinesGeoViewProcessData new forClass: SmockDMultiPolylines.
+	self graphicModel setProcessData: DArcBandGeoViewProcessData new forClass: SmockDArcBand.
+	
 ]
 
 { #category : #initialization }

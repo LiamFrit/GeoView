@@ -1429,89 +1429,28 @@ GeoViewExamples class >> exampleVisibilityDShapesLayer [
 ]
 
 { #category : #'examples - dshapeslayer' }
-GeoViewExamples class >> exampleWithDArcBandLayer [
-
-	| element layer arcBand arcBand2 |
-	element := GeoViewElement new.
-	layer := GeoViewDShapesLayer new name: #shapes.
-	element addLayer: layer.
-
-	arcBand := (SmockDArcBand key: #arcBand)
-		           coordinates: 200 @ 200;
-		           strokeWidth: 2;
-		           strokeColor: Color yellow;
-		           radiusMin: 100;
-		           radiusMax: 150;
-		           orientation: 0;
-		           aperture: 90;
-		           setDrawModeDevice.
-	layer addDShape: arcBand.
-
-	arcBand2 := (SmockDArcBand key: #arcBand2)
-		            coordinates:
-			           (element mapProjection projLatLonToCart:
-					            AbsoluteCoordinates zero);
-		            strokeWidth: 2;
-		            strokeColor: Color green;
-		            radiusMin: 1000000;
-		            radiusMax: 1100000;
-		            orientation: 90;
-		            aperture: 150;
-		            setDrawModeUser.
-	layer addDShape: arcBand2.
-
-
-	^ self openViewInWindow: element
-]
-
-{ #category : #'examples - dshapeslayer' }
 GeoViewExamples class >> exampleWithDShapesLayer [
-
+	
 	| element layer circle1 circle2 segment1 segment2 |
 	element := GeoViewElement new.
-	layer := GeoViewDShapesLayer new name: #shapes.
+	layer := GeoViewDShapesLayer new name: #shapes. 
 	element addLayer: layer.
-
+	
 	"User circle (considering measures are in cartesian coordinates)"
-	circle1 := (SmockDCircle key: #circle1)
-		           coordinates:
-			           (element mapProjection projLatLonToCart:
-					            AbsoluteCoordinates zero);
-		           radius: 1000000;
-		           strokeColor: Color green;
-		           strokeWidth: 2.
+	circle1 := (SmockDCircle key: #circle1) coordinates: (element mapProjection projLatLonToCart: AbsoluteCoordinates zero); radius: 1000000; strokeColor: Color green; strokeWidth: 2.
 	layer addDShape: circle1.
 
 	"Device circle (considering measures are in screen coordinates)"
-	circle2 := (SmockDCircle key: #circle2)
-		           coordinates: 100 @ 100;
-		           radius: 100;
-		           strokeColor: Color yellow;
-		           strokeWidth: 2;
-		           setDrawModeDevice.
+	circle2 := (SmockDCircle key: #circle2) coordinates: 100@100; radius: 100; strokeColor: Color yellow; strokeWidth: 2; setDrawModeDevice.
 	layer addDShape: circle2.
 
 	"User segment"
-	segment1 := (SmockDSegment key: #segment1)
-		            coordinates:
-			            (element mapProjection projLatLonToCart:
-					             AbsoluteCoordinates frParis);
-		            coordinates2:
-			            (element mapProjection projLatLonToCart:
-					             AbsoluteCoordinates frBrest);
-		            strokeColor: Color green;
-		            strokeWidth: 2.
+	segment1 := (SmockDSegment key: #segment1) coordinates: (element mapProjection projLatLonToCart: AbsoluteCoordinates frParis); coordinates2: (element mapProjection projLatLonToCart: AbsoluteCoordinates frBrest); strokeColor: Color green; strokeWidth: 2.
 	layer addDShape: segment1.
-
+	
 	"Device segment"
-	segment2 := (SmockDSegment key: #segment2)
-		            coordinates: 150 @ 150;
-		            coordinates2: 250 @ 250;
-		            strokeColor: Color yellow;
-		            strokeWidth: 2;
-		            setDrawModeDevice.
+	segment2 := (SmockDSegment key: #segment2) coordinates: 150@150; coordinates2: 250@250; strokeColor: Color yellow; strokeWidth: 2; setDrawModeDevice.
 	layer addDShape: segment2.
-
 
 	^ self openViewInWindow: element
 ]
@@ -1555,55 +1494,31 @@ GeoViewExamples class >> exampleWithDShapesLayerWithDeviceAndUserArcBand [
 { #category : #'examples - dshapeslayer' }
 GeoViewExamples class >> exampleWithDShapesLayerWithDeviceRectanglesResizedOnSizeChanged [
 	"In this test, use of a DShapes layer to display rectangles in device coordinates. These rectangle are resize when the window size change."
-
+	
 	| element layer rectangle1 rectangle2 rectangle3 |
 	element := GeoViewElement new.
-	layer := GeoViewDShapesLayer new name: #shapes.
+	layer := GeoViewDShapesLayer new name: #shapes. 
 	element addLayer: layer.
-
-	rectangle1 := (SmockDRectangle key: #rectangle1)
-		              setDrawModeDevice;
-		              coordinates: 10 @ 10;
-		              length1: 100;
-		              length2: 100;
-		              strokeColor: Color yellow;
-		              strokeWidth: 4.
+	
+	rectangle1 := (SmockDRectangle key: #rectangle1) setDrawModeDevice; coordinates: 10@10; length1: 100; length2: 100; strokeColor: Color yellow; strokeWidth: 4.
 	layer addDShape: rectangle1.
-
-	rectangle2 := (SmockDRectangle key: #rectangle2)
-		              setDrawModeDevice;
-		              coordinates: 20 @ 20;
-		              length1: 100;
-		              length2: 100;
-		              strokeColor: Color yellow;
-		              strokeWidth: 4.
+	
+	rectangle2 := (SmockDRectangle key: #rectangle2) setDrawModeDevice; coordinates: 20@20; length1: 100; length2: 100; strokeColor: Color yellow; strokeWidth: 4.
 	layer addDShape: rectangle2.
 
-	element addEventHandlerOn: BlElementExtentChangedEvent do: [ :evt |
-			| extent |
-			"update rectangles size"
-			extent := evt target extent.
-
-			rectangle1
-				length1: extent x - 20;
-				length2: extent y - 20.
-			rectangle2
-				length1: extent x - 40;
-				length2: extent y - 40.
-
-			layer updateDShapes: {
-					rectangle1.
-					rectangle2 } ].
+	element 
+		addEventHandlerOn: BlElementExtentChangedEvent
+		do: [ :evt | | extent | "update rectangles size"
+			extent := evt target extent. 
+			
+			rectangle1 length1: (extent x - 20); length2: (extent y - 20).
+			rectangle2 length1: (extent x - 40); length2: (extent y - 40).
+			
+			layer updateDShapes: { rectangle1 . rectangle2 }.
+		].
 
 	"create a user rectangle : not affected by size changed"
-	rectangle3 := (SmockDRectangle key: #rectangle3)
-		              coordinates:
-			              (element mapProjection projLatLonToCart:
-					               AbsoluteCoordinates zero);
-		              length1: 1000000;
-		              length2: 1000000;
-		              strokeColor: Color green;
-		              strokeWidth: 2.
+	rectangle3 := (SmockDRectangle key: #rectangle3) coordinates: (element mapProjection projLatLonToCart: AbsoluteCoordinates zero); length1: 1000000; length2: 1000000; strokeColor: Color green; strokeWidth: 2.
 	layer addDShape: rectangle3.
 
 	^ self openViewInWindow: element
